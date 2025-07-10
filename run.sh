@@ -39,11 +39,25 @@ else
     echo "✅ Composer đã tồn tại."
 fi
 
-# Thêm Composer vào PATH nếu chưa có
-if ! grep -q 'composer/vendor/bin' ~/.bashrc; then
-    echo 'export PATH="$HOME/.composer/vendor/bin:$PATH"' >> ~/.bashrc
-    source ~/.bashrc
+# --- Laravel Installer ---
+echo "🚀 Cài đặt Laravel Installer..."
+
+# Cài đặt Laravel global
+su - "$SUDO_USER" -c "composer global require laravel/installer"
+
+# Lấy đường dẫn bin Laravel
+LARAVEL_BIN_PATH=$(su - "$SUDO_USER" -c 'composer global config bin-dir --absolute')
+
+# Thêm vào PATH nếu chưa có (cho bash và zsh)
+if ! grep -q "$LARAVEL_BIN_PATH" /home/"$SUDO_USER"/.bashrc; then
+    echo "export PATH=\"$LARAVEL_BIN_PATH:\$PATH\"" >> /home/"$SUDO_USER"/.bashrc
 fi
+if [ -f /home/"$SUDO_USER"/.zshrc ] && ! grep -q "$LARAVEL_BIN_PATH" /home/"$SUDO_USER"/.zshrc; then
+    echo "export PATH=\"$LARAVEL_BIN_PATH:\$PATH\"" >> /home/"$SUDO_USER"/.zshrc
+fi
+
+echo "✅ Laravel đã được thêm vào PATH cho user: $SUDO_USER"
+echo "👉 Bạn cần mở terminal mới hoặc chạy: source ~/.bashrc"
 
 # --- Node.js ---
 echo "📦 Đang kiểm tra Node.js..."
@@ -87,19 +101,19 @@ echo "✅ Đã cấu hình Git:"
 git config --global --list
 
 # Tạo SSH key nếu chưa có
-if [ ! -f ~/.ssh/id_rsa.pub ]; then
+if [ ! -f /home/"$SUDO_USER"/.ssh/id_rsa.pub ]; then
     echo "🔐 Chưa có SSH key, đang tạo mới..."
-    ssh-keygen -t rsa -b 4096 -C "$git_email" -N "" -f ~/.ssh/id_rsa
+    sudo -u "$SUDO_USER" ssh-keygen -t rsa -b 4096 -C "$git_email" -N "" -f /home/"$SUDO_USER"/.ssh/id_rsa
 else
     echo "🔐 SSH key đã tồn tại."
 fi
 
 eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_rsa
+ssh-add /home/"$SUDO_USER"/.ssh/id_rsa
 
 echo ""
 echo "👉 SSH public key của bạn (dán vào GitHub):"
-cat ~/.ssh/id_rsa.pub
+cat /home/"$SUDO_USER"/.ssh/id_rsa.pub
 echo ""
 echo "🔗 Thêm SSH key vào GitHub: https://github.com/settings/keys"
 echo ""
@@ -111,6 +125,7 @@ echo ""
 echo "✅ Phiên bản đã cài:"
 php -v
 composer -V
+su - "$SUDO_USER" -c "laravel --version"
 node -v
 npm -v
 python --version
