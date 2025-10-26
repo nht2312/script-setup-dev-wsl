@@ -16,11 +16,11 @@ echo "▶ Updating Homebrew..."
 brew update
 
 echo "▶ Installing PHP, Node, Git, Composer..."
-brew install php node@24 git composer
+brew install php@8.4 node@24 git composer
 
 # Node@20 cần link thủ công nếu dùng default “node”
 brew unlink node || true
-brew link --overwrite node@20
+brew link --overwrite node@24
 
 # 4. Đảm bảo intl extension đã bật (brew PHP mặc định kèm sẵn)
 php -m | grep -q intl || {
